@@ -97,7 +97,7 @@ class XiFaDi(object):
 
     def printone(self, food, output):
         if output == sys.stdout and sys.platform == 'win32':
-            print food[0], ':', food[i][1],
+            print food[0], ':', food[1],
         else:
             try:
                 output.write(str(food[0].encode('utf-8'))+':'.encode('utf-8')+str(food[1]))

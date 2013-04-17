@@ -126,6 +126,10 @@ class XiFaDi(object):
                 output.write(os.linesep)
         else:
             for type,price in self.food.items():
+                if output == sys.stdout and sys.platform == 'win32':
+                    print '====='+type.decode('utf8')+'====='
+                else:
+                    output.write('====='+type+'====='+os.linesep)
                 if showall:
                     n = len(price)
                 for i in range(0, n):
@@ -282,7 +286,8 @@ class BaLiQiao(object):
                     print '====='+k.decode('utf8')+'====='
                 else:
                     output.write('====='+k+'====='+os.linesep)
-                n = len(food)
+                if showall:
+                    n = len(food)
                 for i in xrange(n):
                     self.printone(food[i], output)
                     output.write(os.linesep)

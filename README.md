@@ -7,7 +7,7 @@ BeiJing Food Price from BaLiQiao and XiFaDi
 
 获取北京食品价格从"八里桥"和"新发地"
 
-![alt="snapshot"](snapshot.png)
+![alt="snapshot"](foodprice_snapshot.png)
 
 * all 输出所有食品价格
 * help 获得用法

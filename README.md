@@ -1,6 +1,6 @@
 bjfoodprice
 ===========
-![alt="foodprice ico"](foodprice.ico)
+![alt="foodprice ico"](foodprice.png)
 BeiJing Food Price from BaLiQiao and XiFaDi
 获取北京食品价格从"八里桥"和"新发地"
 ![alt="snapshot"](snapshot.png)

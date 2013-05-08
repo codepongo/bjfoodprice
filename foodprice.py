@@ -296,6 +296,7 @@ def help():
 USEAGE:
 %s [-a|--all] [-h|--help][-m|--multi-column][-o <file>|--output=<file>]
     all     Show all kinds of food
+    multi-column show many price in a line
     help    Help
     output  output in <file>
 """) % (sys.argv[0])

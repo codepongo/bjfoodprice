@@ -9,6 +9,8 @@ import operator
 import getopt
 import os
 import string
+import json
+import time
 class XiFaDi(object):
     def __init__(self):
         object.__init__(self)
@@ -97,20 +99,33 @@ class XiFaDi(object):
     def get(self):
         for k in ['vegetable','fruit', 'meat', 'seafood', 'mainfood']:
             all = {}
-            page = 1 
-            mid = self.food[k]
-            while True:
-                url = ('http://www.xinfadi.com.cn/marketanalysis/%s/list/%s.shtml') % (mid, page)
-                finish, p, self.date = self.feed(url)
+
+            self.date = time.strftime('%Y-%m-%d',time.localtime(time.time()))
+            f = self.date +'.'+k+'.json'
+            if os.path.isfile(f):
+                print 'e'
+                with open(f, 'rb') as f:
+                    all = json.load(f)
+                    f.close()
+            else:
+                print 'n'
+                page = 1 
+                mid = self.food[k]
+                while True:
+                    url = ('http://www.xinfadi.com.cn/marketanalysis/%s/list/%s.shtml') % (mid, page)
+                    finish, p, self.date = self.feed(url)
                 
-                if finish:
-                    all.update(p)
-                    break
-                if len(all) != 0 and all.values()[0][-1] != p.values()[0][-1]:
-                    break
-                else:
-                    all.update(p)
-                    page += 1
+                    if finish:
+                        all.update(p)
+                        break
+                    if len(all) != 0 and all.values()[0][-1] != p.values()[0][-1]:
+                        break
+                    else:
+                        all.update(p)
+                        page += 1
+                with open(f, 'wb') as f:
+                    json.dump(all, f)
+                    f.close()
             p = {}
             for key, value in all.iteritems():
                 if len(value) != 0:

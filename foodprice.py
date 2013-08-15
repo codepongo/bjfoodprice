@@ -8,6 +8,7 @@ import datetime
 import operator 
 import getopt
 import os
+import string
 class XiFaDi(object):
     def __init__(self):
         object.__init__(self)
@@ -24,43 +25,64 @@ class XiFaDi(object):
         content = urllib2.urlopen(req)
         html = content.read()
         try:
-            html = html.decode('gbk')
+            html = html.decode('utf8')
         except:
             pass
         price = {}
         class Parser(HTMLParser.HTMLParser):
             def __init__(self):
-                self.cur = None
-                self.new = False
                 self.handle = False
-                self.date = None
+                self.data = False
+                self.item = 0
+                self.cur = None
+                self.date = ''
                 HTMLParser.HTMLParser.__init__(self)
-            def handle_starttag(self, tag, attrs):
-                if tag == 'td':
-                    propertys = {}
-                    for key,value in attrs:
-                        propertys[key] = value
-                    if propertys['width'] == '16%' and -1 !=propertys['style'].find('background'):
-                        self.new = True
-                    elif propertys['width'] == '10%' and -1 !=propertys['style'].find('background'):
-                        self.handle = True
-                    elif propertys['width'] == '13%' and -1 !=propertys['style'].find('background'):
-                        self.handle = True
-                    else:
-                        pass
-            def handle_data(self, data):
-                if self.new:
-                    price[data] = []
-                    if self.cur is not None and self.last is not None:
-                        if self.last[-2] != self.cur[-2]:
-                            self.date = self.last[-2]
-                            raise Exception('finish')
-                    self.last = self.cur
-                    self.cur = price[data]
-                    self.new = False
-                if self.handle:
-                    self.cur.append(data)
+            def handle_endtag(self, tag):
+                if tag == 'table':
+                    self.data = False
                     self.handle = False
+            def handle_starttag(self, tag, attrs):
+                if tag == 'table':
+                    for key, value in attrs:
+                        if key == 'class' and value == 'hq_table':
+                            self.data = True
+                            return
+                if tag == 'td':
+                    if self.data: #table header item has 'width'
+                        for key, value in attrs:
+                            if key == 'width':
+                                return
+                        self.handle = True
+            def handle_data(self, data):
+                if not self.handle:
+                    return
+                if self.item == 0:
+                    if ord(data[0]) == 0x9 or ord(data[0]) == 0xd:
+                        return
+                    self.cur = []
+                    self.cur.append(data)
+                    self.item += 1
+                elif self.item > 0 and self.item < 4:
+                    d = ''
+                    for c in data:
+                        if c in string.digits or c == '.':
+                            d += c
+                    self.cur.append(d)
+                    self.item += 1
+                elif self.item == 6:
+                    if len(price.items()) == 0:
+                        self.date = data
+                        self.cur.append(self.date)
+                        price[self.cur[0]] = self.cur[1:]
+                    else:
+                        if data != self.date:
+                            raise Exception('finish')
+                        else:
+                            self.cur.append(self.date)
+                            price[self.cur[0]] = self.cur[1:]
+                    self.item = 0
+                else:
+                    self.item += 1
         try:
             p = Parser()
             p.feed(html)
@@ -74,17 +96,17 @@ class XiFaDi(object):
     
     def get(self):
         for k in ['vegetable','fruit', 'meat', 'seafood', 'mainfood']:
-            mid = self.food[k]
             all = {}
             page = 1 
+            mid = self.food[k]
             while True:
-                url = ('http://www.xinfadi.com.cn/price/?mid=%s&page=%s') % (mid, page)
+                url = ('http://www.xinfadi.com.cn/marketanalysis/%s/list/%s.shtml') % (mid, page)
                 finish, p, self.date = self.feed(url)
                 
                 if finish:
                     all.update(p)
                     break
-                if len(all) != 0 and all.values()[0][-2] != p.values()[0][-2]:
+                if len(all) != 0 and all.values()[0][-1] != p.values()[0][-1]:
                     break
                 else:
                     all.update(p)
@@ -127,7 +149,7 @@ class XiFaDi(object):
         else:
             for type,price in self.food.items():
                 if output == sys.stdout and sys.platform == 'win32':
-                    print '====='+type.decode('utf8')+'====='
+                    print '====='+type+'====='
                 else:
                     output.write('====='+type+'====='+os.linesep)
                 if showall:
@@ -323,24 +345,24 @@ def main():
         if o in ('-m', '--multi-column'):
             cols = True
     if showall:
-        output.write('BaLiQiao:') 
-        blq = BaLiQiao()
-        blq.get()
-        blq.show(cols=cols, output=output)
         output.write('XiFaDi:')
         xfd = XiFaDi()
         xfd.get()
         xfd.show(cols=cols, output=output)
-    else:
-        output.write('BaLiQiao:')
+        return
+        output.write('BaLiQiao:') 
         blq = BaLiQiao()
         blq.get()
-        blq.show(n=5, cols=cols, output=output)
+        blq.show(cols=cols, output=output)
+    else:
         output.write('XiFaDi:')
         xfd = XiFaDi()
         xfd.get()
         xfd.show(n=5, cols=cols, output=output)
-    
-    
+        return
+        output.write('BaLiQiao:')
+        blq = BaLiQiao()
+        blq.get()
+        blq.show(n=5, cols=cols, output=output)
 if '__main__' == __name__:
     exit(main())
